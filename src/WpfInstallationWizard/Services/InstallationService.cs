@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using System.Windows;
 using WixToolset.Dtf.WindowsInstaller;
 
 namespace WpfInstallationWizard.Services
@@ -19,6 +20,33 @@ namespace WpfInstallationWizard.Services
       _resourcePath = resourcePath;
       _installerStartedEvent = installerStartedEvent;
       _installerExitedEvent = installerExitedEvent;
+    }
+
+    public void Cancel()
+    {
+      _installerExitedEvent.Set();
+
+      //Application.Current.Shutdown();
+    }
+
+    public void MoveNext()
+    {
+      throw new System.NotImplementedException();
+    }
+
+    public void MovePrevious()
+    {
+      throw new System.NotImplementedException();
+    }
+
+    public void PerformInstall()
+    {
+      _installerStartedEvent.Set();
+    }
+
+    public MessageResult ProcessMessage(InstallMessage messageType, Record messageRecord, MessageButtons buttons, MessageIcon icon, MessageDefaultButton defaultButton)
+    {
+      return MessageResult.OK;
     }
   }
 }

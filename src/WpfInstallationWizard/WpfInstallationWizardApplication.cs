@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
+using System.Windows.Threading;
 using WixToolset.Dtf.WindowsInstaller;
 using WpfInstallationWizard.Services;
 using WpfInstallationWizard.ViewModels;
@@ -16,6 +18,7 @@ namespace WpfInstallationWizard
   public class WpfInstallationWizardApplication : Application
   {
     private IServiceProvider _serviceProvider;
+    private IInstallationService _installationService;
 
     private readonly Session _session;
     private readonly string _resourcePath;
@@ -47,6 +50,8 @@ namespace WpfInstallationWizard
       ConfigureServices(serviceCollection);
       _serviceProvider = serviceCollection.BuildServiceProvider();
 
+      _installationService = _serviceProvider.GetRequiredService<IInstallationService>();
+
       //add theming support to the app resources
       Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary
       {
@@ -71,6 +76,25 @@ namespace WpfInstallationWizard
 
       _installerExitedEvent.Set();
       Application.Current.Shutdown();
+    }
+
+    public MessageResult ProcessMessage(InstallMessage messageType, Record messageRecord, MessageButtons buttons, MessageIcon icon, MessageDefaultButton defaultButton)
+    {
+      using (StreamWriter sw = new StreamWriter(Path.Combine(Path.GetTempPath(), $"{nameof(WpfInstallationWizardApplication)}_installLog.txt"), true))
+      {
+        sw.WriteLine($"{DateTime.Now}: ProcessMessage invoked, messageType={messageType}, messageRecord={messageRecord}, buttons={buttons}, icon={icon}, defaultButton={defaultButton}");
+      }
+
+      if (_installationService != null)
+      {
+        object messageResult = Dispatcher.Invoke(DispatcherPriority.Send,
+          new Func<MessageResult>(delegate ()
+          {
+            return _installationService.ProcessMessage(messageType, messageRecord, buttons, icon, defaultButton);
+          }));
+        return (MessageResult)messageResult;
+      }
+      return MessageResult.Cancel;
     }
 
     private void ConfigureServices(IServiceCollection services)

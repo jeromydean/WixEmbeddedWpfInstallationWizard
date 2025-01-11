@@ -1,20 +1,27 @@
-﻿<local:InstallDialogBase x:Class="WpfInstallationWizard.Views.WelcomeDialog"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WpfInstallationWizard.Views"
-        mc:Ignorable="d"
-        Title="WelcomeDialog"
-        Height="450"
-        Width="800">
+﻿<local:InstallDialogBase
+  x:Class="WpfInstallationWizard.Views.WelcomeDialog"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:local="clr-namespace:WpfInstallationWizard.Views"
+  xmlns:viewModels="clr-namespace:WpfInstallationWizard.ViewModels"
+  mc:Ignorable="d"
+  d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type viewModels:WelcomeDialogViewModel}}"
+  Title="WelcomeDialog"
+  Height="450"
+  Width="800">
     <Grid>
     <StackPanel
           Orientation="Vertical">
       <DatePicker />
       <TextBox />
       <CheckBox />
-      <Button />
+      <Button Content="_Install" Command="{Binding InstallCommand}" />
+      <Button Content="_Back" Command="{Binding PreviousCommand}" />
+      <Button Content="_Next" Command="{Binding NextCommand}" />
+      <Button Content="_Cancel" Command="{Binding CancelCommand}" />
+      
     </StackPanel>
     </Grid>
 </local:InstallDialogBase>

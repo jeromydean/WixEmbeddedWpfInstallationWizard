@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.IO;
+using System.Threading;
 using WixToolset.Dtf.WindowsInstaller;
 
 namespace WpfInstallationWizard
@@ -15,6 +17,11 @@ namespace WpfInstallationWizard
 
     public bool Initialize(Session session, string resourcePath, ref InstallUIOptions internalUILevel)
     {
+      using (StreamWriter sw = new StreamWriter(Path.Combine(Path.GetTempPath(), $"{nameof(WpfInstallationWizardApplication)}_installLog.txt"), true))
+      {
+        sw.WriteLine($"{DateTime.Now}: Initialize invoked, session={session}, resourcePath={resourcePath}, internalUILevel={internalUILevel}");
+      }
+
       _session = session;
       _resourcePath = resourcePath;
 
@@ -27,11 +34,23 @@ namespace WpfInstallationWizard
 
       int waitAny = WaitHandle.WaitAny(new WaitHandle[] { _installerStartedEvent, _installerExitedEvent });
 
+      using (StreamWriter sw = new StreamWriter(Path.Combine(Path.GetTempPath(), $"{nameof(WpfInstallationWizardApplication)}_installLog.txt"), true))
+      {
+        sw.WriteLine($"{DateTime.Now}: WaitHandle.WaitAny, result={waitAny}");
+      }
+
       //did the user exit the installation?
       if (waitAny == 1)
       {
         throw new InstallCanceledException();
       }
+
+      using (StreamWriter sw = new StreamWriter(Path.Combine(Path.GetTempPath(), $"{nameof(WpfInstallationWizardApplication)}_installLog.txt"), true))
+      {
+        sw.WriteLine($"{DateTime.Now}: Starting installation");
+      }
+
+      internalUILevel = InstallUIOptions.NoChange | InstallUIOptions.SourceResolutionOnly;
       return true;
     }
 
@@ -46,11 +65,16 @@ namespace WpfInstallationWizard
 
     public MessageResult ProcessMessage(InstallMessage messageType, Record messageRecord, MessageButtons buttons, MessageIcon icon, MessageDefaultButton defaultButton)
     {
-      return MessageResult.OK;
+      return _installationWizardApplication.ProcessMessage(messageType, messageRecord, buttons, icon, defaultButton);
     }
 
     public void Shutdown()
     {
+      using (StreamWriter sw = new StreamWriter(Path.Combine(Path.GetTempPath(), $"{nameof(WpfInstallationWizardApplication)}_installLog.txt"), true))
+      {
+        sw.WriteLine($"{DateTime.Now}: Shutdown invoked");
+      }
+      _installationWizardApplication?.Shutdown();
       _applicationThread.Join();
     }
   }
