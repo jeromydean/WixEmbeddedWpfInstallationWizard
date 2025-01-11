@@ -1,0 +1,17 @@
+﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="WixEmbeddedWpfInstallationWizard" Manufacturer="TODO Manufacturer" Version="1.0.0.0" UpgradeCode="3ae63a19-cf59-4bed-810e-c0076ed76bc2">
+    <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
+    <MediaTemplate
+      CompressionLevel="high"
+      EmbedCab="true" />
+    <Binary Id="WpfInstallationWizardBinary" SourceFile="$(var.WpfInstallationWizard.TargetDir)\WpfInstallationWizard.CA.dll" />
+    <UI>
+      <EmbeddedUI
+        Id="WpfInstallationWizardEmbeddedUI"
+        SourceFile="WpfInstallationWizard.CA.dll" />
+    </UI>
+    <Feature Id="Main">
+      <ComponentGroupRef Id="ExampleComponents" />
+    </Feature>
+  </Package>
+</Wix>
