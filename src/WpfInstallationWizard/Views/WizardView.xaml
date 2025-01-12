@@ -16,8 +16,27 @@
   SizeToContent="WidthAndHeight"
   TitleCharacterCasing="Normal"
   Title="{Binding CurrentPage.Title}">
-  <ContentPresenter
+  <Window.Resources>
+    <valueConverters:InvertableBooleanToVisibilityConverter x:Key="InvertableBooleanToVisibilityConverter" />
+  </Window.Resources>
+  <StackPanel>
+    <ContentPresenter
       Grid.Row="0"
       Grid.Column="0"
+      Visibility="{Binding IsInstalling, Converter={StaticResource InvertableBooleanToVisibilityConverter}, ConverterParameter=Inverted}"
       Content="{Binding CurrentPage, Converter={StaticResource WizardPageDataContextToWizardPageConverter}}" />
+    <TextBlock
+      Visibility="{Binding IsInstalling, Converter={StaticResource InvertableBooleanToVisibilityConverter}}"
+      Text="{Binding InstallerMessages}"
+      Height="400"
+      Width="800"
+      TextWrapping="Wrap" />
+    <Button
+        Visibility="{Binding IsInstalling, Converter={StaticResource InvertableBooleanToVisibilityConverter}}"
+        Margin="20,5,5,5"
+        Content="Exit"
+        Command="{Binding ExitCommand}"
+        CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
+  </StackPanel>
+
  </mah:MetroWindow>

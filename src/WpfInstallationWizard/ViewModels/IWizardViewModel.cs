@@ -1,4 +1,6 @@
-﻿namespace WpfInstallationWizard.ViewModels
+﻿using WpfInstallationWizard.Messages;
+
+namespace WpfInstallationWizard.ViewModels
 {
   public interface IWizardViewModel
   {
@@ -9,5 +11,6 @@
     void StartInstall();
     bool CanMovePrevious { get; }
     bool CanMoveNext { get; }
+    void ProcessInstallerMessage(InstallerMessage message);
   }
 }

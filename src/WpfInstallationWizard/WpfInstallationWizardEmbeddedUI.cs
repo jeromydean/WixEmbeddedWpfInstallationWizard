@@ -76,6 +76,7 @@ namespace WpfInstallationWizard
       {
         sw.WriteLine($"{DateTime.Now}: Shutdown invoked");
       }
+      //_installationWizardApplication.PerformShutdown();
       _applicationThread.Join();
     }
   }

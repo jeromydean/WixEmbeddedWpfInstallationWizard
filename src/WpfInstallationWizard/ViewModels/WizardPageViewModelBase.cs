@@ -57,7 +57,7 @@ namespace WpfInstallationWizard.ViewModels
 
       InstallCommand = new RelayCommand<Window>((w) =>
       {
-        w.DialogResult = true;
+        WizardViewModel.StartInstall();
       });
 
       CancelCommand = new RelayCommand<Window>((w) =>

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using System.Windows;
 using WixToolset.Dtf.WindowsInstaller;
+using WpfInstallationWizard.Messages;
 using WpfInstallationWizard.ValueConverters;
 using WpfInstallationWizard.ViewModels;
 using WpfInstallationWizard.Views;
@@ -30,11 +32,9 @@ namespace WpfInstallationWizard
       _resourcePath = resourcePath;
       _installerStartedEvent = installerStartedEvent;
       _installerExitedEvent = installerExitedEvent;
-    }
 
-    private void WpfInstallationWizardApplication_Exit(object sender, ExitEventArgs e)
-    {
-      throw new NotImplementedException();
+      //we are being explicit even though this is the default
+      ShutdownMode = ShutdownMode.OnLastWindowClose;
     }
 
     public void Start()
@@ -76,11 +76,7 @@ namespace WpfInstallationWizard
           _serviceProvider.GetRequiredService<VerifyReadyPageViewModel>());
 
         WizardView wizardView = _serviceProvider.GetRequiredService<WizardView>();
-        if (wizardView.ShowDialog() == true)
-        {
-          _installerStartedEvent.Set();
-        }
-        else
+        if (wizardView.ShowDialog() == false)
         {
           _installerExitedEvent.Set();
         }
@@ -92,14 +88,34 @@ namespace WpfInstallationWizard
           sw.WriteLine($"{DateTime.Now}: OnStartup Exception occurred. {ex}");
         }
       }
+      finally
+      {
+        Application.Current.Shutdown();
+      }
     }
+
+    //public void PerformShutdown()
+    //{
+    //  _serviceProvider.GetRequiredService<WizardView>().DialogResult = null;
+    //}
 
     public MessageResult ProcessMessage(InstallMessage messageType, Record messageRecord, MessageButtons buttons, MessageIcon icon, MessageDefaultButton defaultButton)
     {
       try
       {
-        //probably will deal with these with a messenger
+        _serviceProvider.GetRequiredService<IWizardViewModel>().ProcessInstallerMessage(new InstallerMessage
+        {
+          MessageType = messageType,
+          MessageRecord = messageRecord
+        });
 
+        //gotta figure out why this throws
+        //System.IO.FileLoadException: Could not load file or assembly 'System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, 
+        //WeakReferenceMessenger.Default.Send(new InstallerMessage
+        //{
+        //  MessageType = messageType,
+        //  MessageRecord = messageRecord
+        //});
 
         using (StreamWriter sw = new StreamWriter(Path.Combine(Path.GetTempPath(), $"{nameof(WpfInstallationWizardApplication)}_installLog.txt"), true))
         {
@@ -114,7 +130,7 @@ namespace WpfInstallationWizard
         }
       }
 
-      return MessageResult.Cancel;
+      return MessageResult.OK;
     }
 
     private void ConfigureServices(IServiceCollection services)
@@ -140,7 +156,7 @@ namespace WpfInstallationWizard
       {
         services.AddTransient(wizardPageType);
       }
-      services.AddTransient<WizardView>();
+      services.AddSingleton<WizardView>();
 
       services.AddSingleton<WizardPageDataContextToWizardPageConverter>(sp =>
       {
