@@ -1,0 +1,51 @@
+﻿<local:WizardPageBase
+  x:Class="WpfInstallationWizard.Views.WelcomePage"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+  xmlns:local="clr-namespace:WpfInstallationWizard.Views"
+  xmlns:viewModels="clr-namespace:WpfInstallationWizard.ViewModels"
+  mc:Ignorable="d"
+  d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type viewModels:WelcomePageViewModel}}"
+  Height="450"
+  Width="800">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <TextBlock
+      Grid.Row="0"
+      Grid.Column="0"
+      Margin="25"
+      TextWrapping="Wrap">
+      Lorem ipsum odor amet, consectetuer adipiscing elit. Vel torquent donec ac tellus vehicula semper.
+      Mi odio ad vulputate nec posuere aliquam. Montes mus mauris maecenas suspendisse taciti posuere eros curae.
+      Diam quisque vulputate sem tempus sociosqu nisi mattis. Iaculis venenatis maximus nullam sapien tristique mauris nulla hac bibendum.
+      Conubia posuere commodo; posuere felis nostra ultrices ultricies bibendum.
+      Habitasse diam mollis nunc porta at ultricies sed ullamcorper lacinia.
+      Sodales conubia condimentum tempus molestie ullamcorper, ridiculus dignissim imperdiet.
+      Eleifend rhoncus finibus arcu cursus mi.
+    </TextBlock>
+    <StackPanel
+      Grid.Row="1"
+      Grid.Column="0"
+      Orientation="Horizontal"
+      HorizontalAlignment="Right">
+      <Button
+        Margin="5"
+        Content="_Back"
+        Command="{Binding PreviousCommand}" />
+      <Button
+        Margin="5"
+        Content="_Next"
+        Command="{Binding NextCommand}" />
+      <Button
+        Margin="20,5,5,5"
+        Content="_Cancel"
+        Command="{Binding CancelCommand}"
+        CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
+    </StackPanel>
+  </Grid>
+</local:WizardPageBase>

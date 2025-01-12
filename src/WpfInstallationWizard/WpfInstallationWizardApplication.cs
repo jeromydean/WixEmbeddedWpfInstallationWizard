@@ -1,15 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
-using System.Windows.Threading;
 using WixToolset.Dtf.WindowsInstaller;
-using WpfInstallationWizard.Services;
+using WpfInstallationWizard.ValueConverters;
 using WpfInstallationWizard.ViewModels;
 using WpfInstallationWizard.Views;
 
@@ -18,7 +15,6 @@ namespace WpfInstallationWizard
   public class WpfInstallationWizardApplication : Application
   {
     private IServiceProvider _serviceProvider;
-    private IInstallationService _installationService;
 
     private readonly Session _session;
     private readonly string _resourcePath;
@@ -34,8 +30,11 @@ namespace WpfInstallationWizard
       _resourcePath = resourcePath;
       _installerStartedEvent = installerStartedEvent;
       _installerExitedEvent = installerExitedEvent;
+    }
 
-      ShutdownMode = ShutdownMode.OnExplicitShutdown;
+    private void WpfInstallationWizardApplication_Exit(object sender, ExitEventArgs e)
+    {
+      throw new NotImplementedException();
     }
 
     public void Start()
@@ -44,79 +43,109 @@ namespace WpfInstallationWizard
     }
     protected override void OnStartup(StartupEventArgs e)
     {
-      Debugger.Launch();
-
-      ServiceCollection serviceCollection = new ServiceCollection();
-      ConfigureServices(serviceCollection);
-      _serviceProvider = serviceCollection.BuildServiceProvider();
-
-      _installationService = _serviceProvider.GetRequiredService<IInstallationService>();
-
-      //add theming support to the app resources
-      Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary
+      try
       {
-        Source = new Uri(@"pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml")
-      });
-      Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary
+        ServiceCollection serviceCollection = new ServiceCollection();
+        ConfigureServices(serviceCollection);
+        _serviceProvider = serviceCollection.BuildServiceProvider();
+
+        Application.Current.Resources.Add(nameof(WizardPageDataContextToWizardPageConverter), _serviceProvider.GetRequiredService<WizardPageDataContextToWizardPageConverter>());
+
+        //add theming support to the app resources
+        Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+          Source = new Uri(@"pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml")
+        });
+        Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+          Source = new Uri(@"pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml")
+        });
+        //color schemes ("Light" and "Dark" variations of all of these exist):
+        //"Red", "Green", "Blue", "Purple", "Orange", "Lime", "Emerald", "Teal", "Cyan", "Cobalt", "Indigo",
+        //"Violet", "Pink", "Magenta", "Crimson", "Amber", "Yellow", "Brown", "Olive", "Steel", "Mauve", "Taupe", "Sienna"
+        Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+          Source = new Uri(@"pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Blue.xaml")
+        });
+
+        base.OnStartup(e);
+
+        _serviceProvider.GetRequiredService<IWizardViewModel>().AddPages(
+          _serviceProvider.GetRequiredService<WelcomePageViewModel>(),
+          _serviceProvider.GetRequiredService<LicenseAgreementPageViewModel>(),
+          _serviceProvider.GetRequiredService<VerifyReadyPageViewModel>());
+
+        WizardView wizardView = _serviceProvider.GetRequiredService<WizardView>();
+        if (wizardView.ShowDialog() == true)
+        {
+          _installerStartedEvent.Set();
+        }
+        else
+        {
+          _installerExitedEvent.Set();
+        }
+      }
+      catch (Exception ex)
       {
-        Source = new Uri(@"pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml")
-      });
-      //color schemes ("Light" and "Dark" variations of all of these exist):
-      //"Red", "Green", "Blue", "Purple", "Orange", "Lime", "Emerald", "Teal", "Cyan", "Cobalt", "Indigo",
-      //"Violet", "Pink", "Magenta", "Crimson", "Amber", "Yellow", "Brown", "Olive", "Steel", "Mauve", "Taupe", "Sienna"
-      Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary
-      {
-        Source = new Uri(@"pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Blue.xaml")
-      });
-
-      base.OnStartup(e);
-
-      WelcomeDialog welcomeDialog = _serviceProvider.GetRequiredService<WelcomeDialog>();
-      welcomeDialog.ShowDialog();
-
-      _installerExitedEvent.Set();
-      Application.Current.Shutdown();
+        using (StreamWriter sw = new StreamWriter(Path.Combine(Path.GetTempPath(), $"{nameof(WpfInstallationWizardApplication)}_installLog.txt"), true))
+        {
+          sw.WriteLine($"{DateTime.Now}: OnStartup Exception occurred. {ex}");
+        }
+      }
     }
 
     public MessageResult ProcessMessage(InstallMessage messageType, Record messageRecord, MessageButtons buttons, MessageIcon icon, MessageDefaultButton defaultButton)
     {
-      using (StreamWriter sw = new StreamWriter(Path.Combine(Path.GetTempPath(), $"{nameof(WpfInstallationWizardApplication)}_installLog.txt"), true))
+      try
       {
-        sw.WriteLine($"{DateTime.Now}: ProcessMessage invoked, messageType={messageType}, messageRecord={messageRecord}, buttons={buttons}, icon={icon}, defaultButton={defaultButton}");
+        //probably will deal with these with a messenger
+
+
+        using (StreamWriter sw = new StreamWriter(Path.Combine(Path.GetTempPath(), $"{nameof(WpfInstallationWizardApplication)}_installLog.txt"), true))
+        {
+          sw.WriteLine($"{DateTime.Now}: ProcessMessage invoked, messageType={messageType}, messageRecord={messageRecord}, buttons={buttons}, icon={icon}, defaultButton={defaultButton}");
+        }
+      }
+      catch(Exception ex)
+      {
+        using (StreamWriter sw = new StreamWriter(Path.Combine(Path.GetTempPath(), $"{nameof(WpfInstallationWizardApplication)}_installLog.txt"), true))
+        {
+          sw.WriteLine($"{DateTime.Now}:ProcessMessage Exception occurred. {ex}");
+        }
       }
 
-      if (_installationService != null)
-      {
-        object messageResult = Dispatcher.Invoke(DispatcherPriority.Send,
-          new Func<MessageResult>(delegate ()
-          {
-            return _installationService.ProcessMessage(messageType, messageRecord, buttons, icon, defaultButton);
-          }));
-        return (MessageResult)messageResult;
-      }
       return MessageResult.Cancel;
     }
 
     private void ConfigureServices(IServiceCollection services)
     {
-      services.AddSingleton<IInstallationService>(new InstallationService(_session, _resourcePath, _installerStartedEvent, _installerExitedEvent));
-      
-      //register all dialog view models
-      Type viewModelBaseType = typeof(InstallDialogViewModelBase);
+      //register all dialog page view models
+      Type viewModelPageBaseType = typeof(WizardPageViewModelBase);
       Assembly executingAssembly = Assembly.GetExecutingAssembly();
-      foreach (Type viewModelType in executingAssembly.GetTypes().Where(t => t != viewModelBaseType
-        && viewModelBaseType.IsAssignableFrom(t)))
+      foreach (Type viewModelType in executingAssembly.GetTypes().Where(t => t != viewModelPageBaseType
+        && viewModelPageBaseType.IsAssignableFrom(t)))
       {
         services.AddSingleton(viewModelType);
       }
 
-      //register all dialogs
-      Type installDialogBaseType = typeof(InstallDialogBase);
-      foreach (Type installDialogType in executingAssembly.GetTypes().Where(t => t != installDialogBaseType
-        && installDialogBaseType.IsAssignableFrom(t)))
+      services.AddSingleton<IWizardViewModel>(new WizardViewModel(_session,
+        _resourcePath,
+        _installerStartedEvent,
+        _installerExitedEvent));
+
+      //register all pages
+      Type wizardPageBaseType = typeof(WizardPageBase);
+      foreach (Type wizardPageType in executingAssembly.GetTypes().Where(t => t != wizardPageBaseType
+        && wizardPageBaseType.IsAssignableFrom(t)))
       {
-        services.AddSingleton(installDialogType);
+        services.AddTransient(wizardPageType);
       }
+      services.AddTransient<WizardView>();
+
+      services.AddSingleton<WizardPageDataContextToWizardPageConverter>(sp =>
+      {
+        return new WizardPageDataContextToWizardPageConverter(sp);
+      });
     }
   }
 }

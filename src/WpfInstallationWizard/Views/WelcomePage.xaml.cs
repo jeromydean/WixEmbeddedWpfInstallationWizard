@@ -3,11 +3,11 @@
 namespace WpfInstallationWizard.Views
 {
   /// <summary>
-  /// Interaction logic for WelcomeDialog.xaml
+  /// Interaction logic for WelcomePage.xaml
   /// </summary>
-  public partial class WelcomeDialog : InstallDialogBase
+  public partial class WelcomePage : WizardPageBase
   {
-    public WelcomeDialog(WelcomeDialogViewModel dataContext)
+    public WelcomePage(WelcomePageViewModel dataContext)
     {
       DataContext = dataContext;
       InitializeComponent();

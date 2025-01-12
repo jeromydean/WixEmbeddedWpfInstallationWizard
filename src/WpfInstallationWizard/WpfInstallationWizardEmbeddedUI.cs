@@ -17,6 +17,8 @@ namespace WpfInstallationWizard
 
     public bool Initialize(Session session, string resourcePath, ref InstallUIOptions internalUILevel)
     {
+      //https://learn.microsoft.com/en-us/windows/win32/msi/using-an-embedded-ui
+
       using (StreamWriter sw = new StreamWriter(Path.Combine(Path.GetTempPath(), $"{nameof(WpfInstallationWizardApplication)}_installLog.txt"), true))
       {
         sw.WriteLine($"{DateTime.Now}: Initialize invoked, session={session}, resourcePath={resourcePath}, internalUILevel={internalUILevel}");
@@ -74,7 +76,6 @@ namespace WpfInstallationWizard
       {
         sw.WriteLine($"{DateTime.Now}: Shutdown invoked");
       }
-      _installationWizardApplication?.Shutdown();
       _applicationThread.Join();
     }
   }
