@@ -8,6 +8,8 @@
   xmlns:local="clr-namespace:WpfInstallationWizard.Views"
   xmlns:viewModels="clr-namespace:WpfInstallationWizard.ViewModels"
   xmlns:valueConverters="clr-namespace:WpfInstallationWizard.ValueConverters"
+  xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+  xmlns:dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
   mc:Ignorable="d"
   d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type viewModels:WizardViewModel}}"
   d:Width="800"
@@ -15,28 +17,19 @@
   ResizeMode="NoResize"
   SizeToContent="WidthAndHeight"
   TitleCharacterCasing="Normal"
-  Title="{Binding CurrentPage.Title}">
-  <Window.Resources>
-    <valueConverters:InvertableBooleanToVisibilityConverter x:Key="InvertableBooleanToVisibilityConverter" />
-  </Window.Resources>
+  Title="{Binding CurrentPage.Title}"
+  dialog:DialogParticipation.Register="{Binding}">
+  <i:Interaction.Triggers>
+    <i:EventTrigger EventName="Closing">
+      <i:InvokeCommandAction
+        Command="{Binding ClosingCommand}"
+        PassEventArgsToCommand="True" />
+    </i:EventTrigger>
+  </i:Interaction.Triggers>
   <StackPanel>
     <ContentPresenter
       Grid.Row="0"
       Grid.Column="0"
-      Visibility="{Binding IsInstalling, Converter={StaticResource InvertableBooleanToVisibilityConverter}, ConverterParameter=Inverted}"
       Content="{Binding CurrentPage, Converter={StaticResource WizardPageDataContextToWizardPageConverter}}" />
-    <TextBlock
-      Visibility="{Binding IsInstalling, Converter={StaticResource InvertableBooleanToVisibilityConverter}}"
-      Text="{Binding InstallerMessages}"
-      Height="400"
-      Width="800"
-      TextWrapping="Wrap" />
-    <Button
-        Visibility="{Binding IsInstalling, Converter={StaticResource InvertableBooleanToVisibilityConverter}}"
-        Margin="20,5,5,5"
-        Content="Exit"
-        Command="{Binding ExitCommand}"
-        CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
   </StackPanel>
-
- </mah:MetroWindow>
+</mah:MetroWindow>

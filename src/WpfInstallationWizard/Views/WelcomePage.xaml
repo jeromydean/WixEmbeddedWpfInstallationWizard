@@ -15,19 +15,19 @@
       <RowDefinition Height="*" />
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
-    <TextBlock
+    <RichTextBox
       Grid.Row="0"
       Grid.Column="0"
-      Margin="25"
-      TextWrapping="Wrap">
-      Lorem ipsum odor amet, consectetuer adipiscing elit. Vel torquent donec ac tellus vehicula semper.
-      Mi odio ad vulputate nec posuere aliquam. Montes mus mauris maecenas suspendisse taciti posuere eros curae.
-      Diam quisque vulputate sem tempus sociosqu nisi mattis. Iaculis venenatis maximus nullam sapien tristique mauris nulla hac bibendum.
-      Conubia posuere commodo; posuere felis nostra ultrices ultricies bibendum.
-      Habitasse diam mollis nunc porta at ultricies sed ullamcorper lacinia.
-      Sodales conubia condimentum tempus molestie ullamcorper, ridiculus dignissim imperdiet.
-      Eleifend rhoncus finibus arcu cursus mi.
-    </TextBlock>
+      Margin="25">
+      <FlowDocument>
+        <Paragraph>
+          Hello from an embedded WPF MSI interface.
+          <LineBreak/>
+          <LineBreak/>
+          This interface is using the MahApps.Metro UI framework to make it look half decent.  The WPF application is also using Microsoft.Extensions.DependencyInjection and CommunityToolkit.Mvvm nuget packages.
+        </Paragraph>
+      </FlowDocument>
+    </RichTextBox>
     <StackPanel
       Grid.Row="1"
       Grid.Column="0"
@@ -36,15 +36,17 @@
       <Button
         Margin="5"
         Content="_Back"
-        Command="{Binding PreviousCommand}" />
+        IsEnabled="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.CanMovePrevious}"
+        Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.PreviousPageCommand}" />
       <Button
         Margin="5"
         Content="_Next"
-        Command="{Binding NextCommand}" />
+        IsEnabled="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.CanMoveNext}"
+        Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.NextPageCommand}" />
       <Button
         Margin="20,5,5,5"
         Content="_Cancel"
-        Command="{Binding CancelCommand}"
+        Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.ExitCommand}"
         CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
     </StackPanel>
   </Grid>

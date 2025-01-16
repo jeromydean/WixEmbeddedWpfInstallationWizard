@@ -1,16 +1,8 @@
-﻿using WpfInstallationWizard.Messages;
-
-namespace WpfInstallationWizard.ViewModels
+﻿namespace WpfInstallationWizard.ViewModels
 {
   public interface IWizardViewModel
   {
-    void AddPages(params IWizardPageViewModel[] pages);
-    bool PreviousPage();
-    bool NextPage();
-    void Cancel();
-    void StartInstall();
-    bool CanMovePrevious { get; }
-    bool CanMoveNext { get; }
-    void ProcessInstallerMessage(InstallerMessage message);
+    ISessionProxy InstallSessionProxy { get; }
+    void SetPages(IWizardPageViewModel installCancelledPage, IWizardPageViewModel installFinishedPage, params IWizardPageViewModel[] installPages);
   }
 }

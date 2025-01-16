@@ -1,17 +1,55 @@
 ﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package Name="WixEmbeddedWpfInstallationWizard" Manufacturer="TODO Manufacturer" Version="1.0.0.0" UpgradeCode="3ae63a19-cf59-4bed-810e-c0076ed76bc2">
     <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
+
     <MediaTemplate
       CompressionLevel="high"
       EmbedCab="true" />
+
     <Binary Id="WpfInstallationWizardBinary" SourceFile="$(var.WpfInstallationWizard.TargetDir)\WpfInstallationWizard.CA.dll" />
+
+    <Binary Id="CustomActionsBinary" SourceFile="$(var.CustomActions.TargetDir)\CustomActions.CA.dll" />
+
+    <CustomAction
+      Id="PerformCustomActionId"
+      BinaryRef="CustomActionsBinary"
+      DllEntry="PerformCustomAction"
+      Execute="commit"
+      Return="check" />
+
+    <CustomAction
+      Id="SetupCheckEmbeddedUICancellationActionId"
+      Property="CheckEmbeddedUICancellationActionId"
+      Value="EMBEDDEDUICANCELLATIONMUTEXNAME=[EMBEDDEDUICANCELLATIONMUTEXNAME];"/>
+    <CustomAction
+      Id="CheckEmbeddedUICancellationActionId"
+      BinaryRef="CustomActionsBinary"
+      DllEntry="CheckEmbeddedUICancellation"
+      Execute="deferred"
+      Return="check"
+      Impersonate="no" />
+
+    <InstallExecuteSequence>
+      <Custom
+        Action="PerformCustomActionId"
+        After="InstallFiles" />
+      <Custom
+        Action="SetupCheckEmbeddedUICancellationActionId"
+        Before="CheckEmbeddedUICancellationActionId" />
+      <Custom
+        Action="CheckEmbeddedUICancellationActionId"
+        Before="InstallFinalize" />
+    </InstallExecuteSequence>
+
     <UI>
       <EmbeddedUI
         Id="WpfInstallationWizardEmbeddedUI"
         SourceFile="WpfInstallationWizard.CA.dll" />
     </UI>
+
     <Feature Id="Main">
       <ComponentGroupRef Id="ExampleComponents" />
     </Feature>
+
   </Package>
 </Wix>

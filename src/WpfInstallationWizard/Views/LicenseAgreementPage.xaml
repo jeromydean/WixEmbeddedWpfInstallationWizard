@@ -9,43 +9,71 @@
   mc:Ignorable="d"
   d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type viewModels:LicenseAgreementPageViewModel}}"
   Height="450"
-  Width="800"
-  Background="LightBlue">
+  Width="800">
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="*" />
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
-    <TextBlock
+    <RichTextBox
       Grid.Row="0"
       Grid.Column="0"
-      Margin="25"
-      TextWrapping="Wrap">
-      Lorem ipsum odor amet, consectetuer adipiscing elit. Vel torquent donec ac tellus vehicula semper.
-      Mi odio ad vulputate nec posuere aliquam. Montes mus mauris maecenas suspendisse taciti posuere eros curae.
-      Diam quisque vulputate sem tempus sociosqu nisi mattis. Iaculis venenatis maximus nullam sapien tristique mauris nulla hac bibendum.
-      Conubia posuere commodo; posuere felis nostra ultrices ultricies bibendum.
-      Habitasse diam mollis nunc porta at ultricies sed ullamcorper lacinia.
-      Sodales conubia condimentum tempus molestie ullamcorper, ridiculus dignissim imperdiet.
-      Eleifend rhoncus finibus arcu cursus mi.
-    </TextBlock>
+      Margin="25">
+      <FlowDocument>
+        <Paragraph>
+          This RichTextBox would normally contain your license text so here is the MIT license in a FlowDocument.
+        </Paragraph>
+        <Paragraph Foreground="Cyan">
+          <Bold>
+            MIT License
+          </Bold>
+          <LineBreak />
+          <LineBreak />
+            Copyright (c) 2025 jeromydean
+          <LineBreak />
+          <LineBreak />
+            Permission is hereby granted, free of charge, to any person obtaining a copy
+            of this software and associated documentation files (the "Software"), to deal
+            in the Software without restriction, including without limitation the rights
+            to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+            copies of the Software, and to permit persons to whom the Software is
+            furnished to do so, subject to the following conditions:
+          <LineBreak />
+          <LineBreak />
+            The above copyright notice and this permission notice shall be included in all
+            copies or substantial portions of the Software.
+          <LineBreak />
+          <LineBreak />
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+            IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+            FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+            AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+            LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+            OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+            SOFTWARE.</Paragraph>
+      </FlowDocument>
+    </RichTextBox>
     <StackPanel
+      
       Grid.Row="1"
       Grid.Column="0"
       Orientation="Horizontal"
       HorizontalAlignment="Right">
+
       <Button
         Margin="5"
         Content="_Back"
-        Command="{Binding PreviousCommand}" />
+        IsEnabled="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.CanMovePrevious}"
+        Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.PreviousPageCommand}" />
       <Button
         Margin="5"
         Content="_Next"
-        Command="{Binding NextCommand}" />
+        IsEnabled="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.CanMoveNext}"
+        Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.NextPageCommand}" />
       <Button
         Margin="20,5,5,5"
         Content="_Cancel"
-        Command="{Binding CancelCommand}"
+        Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.ExitCommand}"
         CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
     </StackPanel>
   </Grid>
