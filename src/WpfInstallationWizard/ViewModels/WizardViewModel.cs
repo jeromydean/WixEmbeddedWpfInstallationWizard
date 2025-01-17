@@ -207,11 +207,12 @@ namespace WpfInstallationWizard.ViewModels
       switch (message.MessageType)
       {
         case InstallMessage.ActionStart:
-          string actionName = message.MessageRecord.FieldCount >= 2 ? message.MessageRecord[1].ToString() : string.Empty;
-          string actionDescription = message.MessageRecord.FieldCount >= 3 ? message.MessageRecord[2].ToString() : string.Empty;
+          //MessageRecord.Fields is 1 based
+          string actionName = message.MessageRecord.FieldCount >= 2 ? message.MessageRecord[2].ToString() : string.Empty;
+          string actionDescription = message.MessageRecord.FieldCount >= 3 ? message.MessageRecord[3].ToString() : string.Empty;
           string formattedString = message.MessageRecord.FormatString.Replace("[1]", actionName)
             .Replace("[2]", actionDescription).Trim();
-
+          
           if (!_installationCancelled.WaitOne(0))
           {
             _progressDialogController?.SetMessage(formattedString);
