@@ -6,9 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using WixToolset.Dtf.WindowsInstaller;
 using WpfInstallationWizard.Extensions;
 using WpfInstallationWizard.Messages;
@@ -32,6 +34,7 @@ namespace WpfInstallationWizard.ViewModels
     private IWizardPageViewModel _currentPage;
     private IWizardPageViewModel _installCancelledPage;
     private IWizardPageViewModel _installFinishedPage;
+    private ProgressDialogController _progressDialogController = null;
 
     private int _currentPageIndex = 0;
 
@@ -165,16 +168,17 @@ namespace WpfInstallationWizard.ViewModels
 
       StartInstallationCommand = new AsyncRelayCommand(async () =>
       {
-        ProgressDialogController progressDialogController = await _dialogCoordinator.ShowProgressAsync(this, "title", "message", true);
-        progressDialogController.SetIndeterminate();
+        _progressDialogController = await _dialogCoordinator.ShowProgressAsync(this, "Installing", "Starting installation", true);
+        _progressDialogController.SetIndeterminate();
 
         void ProgressDialogCancelled(object s, EventArgs ea)
         {
-          progressDialogController.SetMessage("Cancelling");
           _installCancellationMutex = new Mutex(true, _cancellationMutexName);
           _installationCancelled.Set();
+          _progressDialogController.SetTitle("Cancelling installation");
+          _progressDialogController.SetMessage("Please wait");
         };
-        progressDialogController.Canceled += ProgressDialogCancelled;
+        _progressDialogController.Canceled += ProgressDialogCancelled;
 
         _installationStarted.Set();
 
@@ -187,8 +191,9 @@ namespace WpfInstallationWizard.ViewModels
 
         await installFinishedTask;
 
-        progressDialogController.Canceled -= ProgressDialogCancelled;
-        await progressDialogController.CloseAsync();
+        _progressDialogController.Canceled -= ProgressDialogCancelled;
+        await _progressDialogController.CloseAsync();
+        _progressDialogController = null;
         _installCancellationMutex?.Dispose();
         _installationPerformed = true;
         CurrentPage = installFinished ? _installFinishedPage : _installCancelledPage;
@@ -197,11 +202,26 @@ namespace WpfInstallationWizard.ViewModels
 
     public void InstallerMessageHandler(object sender, InstallerMessage message)
     {
-      //TODO process all installer messages
+      ///TODO process all installer messages -- some of them will require new dialogs/pages
       //https://learn.microsoft.com/en-us/windows/win32/msi/parsing-windows-installer-messages
-      if (message.MessageType == InstallMessage.InstallEnd)
+      switch (message.MessageType)
       {
-        _installationFinished.Set();
+        case InstallMessage.ActionStart:
+          string actionName = message.MessageRecord.FieldCount >= 2 ? message.MessageRecord[1].ToString() : string.Empty;
+          string actionDescription = message.MessageRecord.FieldCount >= 3 ? message.MessageRecord[2].ToString() : string.Empty;
+          string formattedString = message.MessageRecord.FormatString.Replace("[1]", actionName)
+            .Replace("[2]", actionDescription).Trim();
+
+          if (!_installationCancelled.WaitOne(0))
+          {
+            _progressDialogController?.SetMessage(formattedString);
+          }
+          break;
+        case InstallMessage.InstallEnd:
+          _installationFinished.Set();
+          break;
+        default:
+          break;
       }
     }
 
@@ -214,14 +234,21 @@ namespace WpfInstallationWizard.ViewModels
         if (result == MessageDialogResult.Affirmative)
         {
           _installationExited.Set();
-          Application.Current.Shutdown();
+          await Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+          {
+            Application.Current.Shutdown();
+          }), DispatcherPriority.Normal);
+          return;
         }
         else
         {
           return;
         }
       }
-      Application.Current.Shutdown();
+      await Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+      {
+        Application.Current.Shutdown();
+      }), DispatcherPriority.Normal);
     }
 
     public void SetPages(IWizardPageViewModel installCancelledPage, IWizardPageViewModel installFinishedPage, params IWizardPageViewModel[] installPages)
