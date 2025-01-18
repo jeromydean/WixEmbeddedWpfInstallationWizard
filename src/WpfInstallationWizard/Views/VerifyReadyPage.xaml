@@ -8,8 +8,8 @@
   xmlns:viewModels="clr-namespace:WpfInstallationWizard.ViewModels"
   mc:Ignorable="d"
   d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type viewModels:VerifyReadyPageViewModel}}"
-  Height="450"
-  Width="800">
+  Height="250"
+  Width="500">
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="*" />
@@ -18,10 +18,11 @@
     <TextBlock
       Grid.Row="0"
       Grid.Column="0"
-      Margin="25"
+      Margin="50"
       TextWrapping="Wrap">
-      This is the final page of the wizard before starting the install execute sequence.<LineBreak /><LineBreak />
-      Click the install button to start the installation, you can cancel if you change your mind.
+      <Run FontWeight="Bold">
+        You're almost there! All settings have been verified, and your system is ready for installation.
+      </Run>
     </TextBlock>
     <StackPanel
       Grid.Row="1"

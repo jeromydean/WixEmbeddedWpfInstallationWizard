@@ -38,21 +38,9 @@ namespace WpfInstallationWizard
 
       Application.Current.Resources.Add(nameof(WizardPageDataContextToWizardPageConverter), _serviceProvider.GetRequiredService<WizardPageDataContextToWizardPageConverter>());
 
-      //add theming support to the app resources
       Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary
       {
-        Source = new Uri(@"pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml")
-      });
-      Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary
-      {
-        Source = new Uri(@"pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml")
-      });
-      //color schemes ("Light" and "Dark" variations of all of these exist):
-      //"Red", "Green", "Blue", "Purple", "Orange", "Lime", "Emerald", "Teal", "Cyan", "Cobalt", "Indigo",
-      //"Violet", "Pink", "Magenta", "Crimson", "Amber", "Yellow", "Brown", "Olive", "Steel", "Mauve", "Taupe", "Sienna"
-      Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary
-      {
-        Source = new Uri(@"pack://application:,,,/MahApps.Metro;component/Styles/Themes/Dark.Blue.xaml")
+        Source = new Uri(@"pack://application:,,,/WpfInstallationWizard;component/Theming/Styles.xaml")
       });
 
       _serviceProvider.GetRequiredService<IWizardViewModel>().SetPages(

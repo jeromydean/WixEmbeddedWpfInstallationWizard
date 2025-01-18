@@ -59,6 +59,16 @@ namespace WpfInstallationWizard
 
     public MessageResult ProcessMessage(InstallMessage messageType, Record messageRecord, MessageButtons buttons, MessageIcon icon, MessageDefaultButton defaultButton)
     {
+      //we ignore these message types so just drop them and return OK
+      if (messageType == InstallMessage.InstallStart
+        || messageType == InstallMessage.ActionData
+        || messageType == InstallMessage.CommonData
+        || messageType == InstallMessage.Info
+        || messageType == InstallMessage.Progress)
+      {
+        return MessageResult.OK;
+      }
+
       return _wpfEmbeddedApplication.ProcessMessage(messageType,
         messageRecord,
         buttons,

@@ -8,8 +8,8 @@
   xmlns:viewModels="clr-namespace:WpfInstallationWizard.ViewModels"
   mc:Ignorable="d"
   d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type viewModels:WelcomePageViewModel}}"
-  Height="450"
-  Width="800">
+  Height="250"
+  Width="500">
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="*" />
@@ -18,13 +18,26 @@
     <RichTextBox
       Grid.Row="0"
       Grid.Column="0"
-      Margin="25">
+      Margin="20">
       <FlowDocument>
         <Paragraph>
-          Hello from an embedded WPF MSI interface.
-          <LineBreak/>
-          <LineBreak/>
-          This interface is using the MahApps.Metro UI framework to make it look half decent.  The WPF application is also using Microsoft.Extensions.DependencyInjection and CommunityToolkit.Mvvm nuget packages.
+          <Run FontWeight="Bold">Welcome to the Fake Installer!</Run>
+        </Paragraph>
+        <Paragraph>
+          Thank you for choosing Fake! We're excited to have you on board. This installer
+          <LineBreak /> will guide you through the easy steps to get Fake up and running
+          <LineBreak /> on your system.
+        </Paragraph>
+        <Paragraph>
+          Fake is designed to provide you with the best experience possible, and this
+          <LineBreak /> installation process should only take a few minutes.
+        </Paragraph>
+        <Paragraph>
+          Please follow the on-screen instructions to continue with the installation.
+        </Paragraph>
+        <Paragraph>
+          If you need assistance or have any questions, don't hesitate to visit our
+          <LineBreak /> support website or contact our customer service team.
         </Paragraph>
       </FlowDocument>
     </RichTextBox>

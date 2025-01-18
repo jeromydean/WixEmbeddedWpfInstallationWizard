@@ -26,10 +26,20 @@
         PassEventArgsToCommand="True" />
     </i:EventTrigger>
   </i:Interaction.Triggers>
-  <StackPanel>
-    <ContentPresenter
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+    <Image
       Grid.Row="0"
+      Stretch="UniformToFill"
+      Height="50"
+      Width="500"
+      Source="pack://application:,,,/WpfInstallationWizard;component/Resources/Images/header.png" />
+    <ContentPresenter
+      Grid.Row="1"
       Grid.Column="0"
       Content="{Binding CurrentPage, Converter={StaticResource WizardPageDataContextToWizardPageConverter}}" />
-  </StackPanel>
+  </Grid>
 </mah:MetroWindow>

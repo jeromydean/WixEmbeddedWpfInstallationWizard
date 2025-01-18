@@ -8,23 +8,21 @@
   xmlns:viewModels="clr-namespace:WpfInstallationWizard.ViewModels"
   mc:Ignorable="d"
   d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type viewModels:InstallFinishedPageViewModel}}"
-  Height="450"
-  Width="800">
+  Height="250"
+  Width="500">
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="*" />
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
-    <RichTextBox
+    <TextBlock
       Grid.Row="0"
       Grid.Column="0"
-      Margin="25">
-      <FlowDocument>
-        <Paragraph>
-          Installation finished
-        </Paragraph>
-      </FlowDocument>
-    </RichTextBox>
+      Margin="50"
+      TextWrapping="Wrap">
+      <Run FontWeight="Bold">Congratulations! Fake has been successfully installed on your system.</Run>
+      <LineBreak/><LineBreak/>Thank you for choosing Fake! We hope you enjoy using the software.
+    </TextBlock>
     <StackPanel
       Grid.Row="1"
       Grid.Column="0"

@@ -3,6 +3,9 @@
     <TargetFramework>net48</TargetFramework>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Resources\Images\header.png" />
+  </ItemGroup>
  
   <ItemGroup>
     <Content Include="EmbeddedUI.config" CopyToOutputDirectory="PreserveNewest" />
@@ -15,5 +18,8 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="MahApps.Metro" Version="2.4.10" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Images\header.png" />
   </ItemGroup>
 </Project>

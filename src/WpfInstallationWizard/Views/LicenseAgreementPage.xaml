@@ -6,60 +6,68 @@
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
   xmlns:local="clr-namespace:WpfInstallationWizard.Views"
   xmlns:viewModels="clr-namespace:WpfInstallationWizard.ViewModels"
+  xmlns:mmc="http://metro.mahapps.com/winfx/xaml/controls"
   mc:Ignorable="d"
   d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type viewModels:LicenseAgreementPageViewModel}}"
-  Height="450"
-  Width="800">
+  Height="250"
+  Width="500">
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
     <RichTextBox
       Grid.Row="0"
       Grid.Column="0"
-      Margin="25">
+      Margin="20,20,20,5">
       <FlowDocument>
         <Paragraph>
-          This RichTextBox would normally contain your license text so here is the MIT license in a FlowDocument.
+          <Run FontWeight="Bold">MIT License</Run>
         </Paragraph>
-        <Paragraph Foreground="Cyan">
-          <Bold>
-            MIT License
-          </Bold>
-          <LineBreak />
-          <LineBreak />
-            Copyright (c) 2025 jeromydean
-          <LineBreak />
-          <LineBreak />
-            Permission is hereby granted, free of charge, to any person obtaining a copy
-            of this software and associated documentation files (the "Software"), to deal
-            in the Software without restriction, including without limitation the rights
-            to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-            copies of the Software, and to permit persons to whom the Software is
-            furnished to do so, subject to the following conditions:
-          <LineBreak />
-          <LineBreak />
-            The above copyright notice and this permission notice shall be included in all
-            copies or substantial portions of the Software.
-          <LineBreak />
-          <LineBreak />
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-            IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-            FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-            AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-            LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-            OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-            SOFTWARE.</Paragraph>
+        <Paragraph>
+          <Run FontStyle="Italic">Copyright (c) 2025 jeromydean</Run>
+        </Paragraph>
+        <Paragraph>
+          Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+        </Paragraph>
+        <Paragraph>
+          The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+        </Paragraph>
+        <Paragraph>
+          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        </Paragraph>
       </FlowDocument>
     </RichTextBox>
-    <StackPanel
-      
+    <CheckBox
+      x:Name="licenseAcceptedCheckbox"
+      Margin="5,5,20,5"
       Grid.Row="1"
+      Grid.Column="0"
+      HorizontalAlignment="Right"
+      FlowDirection="RightToLeft"
+      IsChecked="{Binding LicenseAccepted}">
+      <TextBlock
+        FlowDirection="LeftToRight"
+        Text="I accept the terms of the license agreement" />
+    </CheckBox>
+    <StackPanel
+      Grid.Row="2"
       Grid.Column="0"
       Orientation="Horizontal"
       HorizontalAlignment="Right">
-
       <Button
         Margin="5"
         Content="_Back"
@@ -68,8 +76,23 @@
       <Button
         Margin="5"
         Content="_Next"
-        IsEnabled="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.CanMoveNext}"
-        Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.NextPageCommand}" />
+        Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.NextPageCommand}">
+        <Button.Style>
+          <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MahApps.Styles.Button}">
+            <Setter Property="Width" Value="75" />
+            <Setter Property="IsEnabled" Value="False" />
+            <Style.Triggers>
+              <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                  <Condition Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.CanMoveNext}" Value="True" />
+                  <Condition Binding="{Binding ElementName=licenseAcceptedCheckbox, Path=IsChecked, TargetNullValue=false}" Value="True" />
+                </MultiDataTrigger.Conditions>
+                <Setter Property="IsEnabled" Value="True" />
+              </MultiDataTrigger>
+            </Style.Triggers>
+          </Style>
+        </Button.Style>
+      </Button>
       <Button
         Margin="20,5,5,5"
         Content="_Cancel"
