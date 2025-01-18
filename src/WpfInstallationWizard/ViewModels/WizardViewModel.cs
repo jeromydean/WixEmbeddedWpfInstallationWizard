@@ -171,7 +171,11 @@ namespace WpfInstallationWizard.ViewModels
 
       StartInstallationCommand = new AsyncRelayCommand(async () =>
       {
-        _progressDialogController = await _dialogCoordinator.ShowProgressAsync(this, "Installing", "Starting installation", true);
+        _progressDialogController = await _dialogCoordinator.ShowProgressAsync(this, "Installing", "Starting installation", true, new MetroDialogSettings
+        {
+          AnimateShow = true,
+          AnimateHide = true
+        });
         _progressDialogController.SetIndeterminate();
 
         void CancelInstall()
@@ -220,25 +224,12 @@ namespace WpfInstallationWizard.ViewModels
       //https://learn.microsoft.com/en-us/windows/win32/msi/parsing-windows-installer-messages
       switch (message.MessageType)
       {
-        case InstallMessage.Info:
-          if (message.MessageRecord != null
-            && message.MessageRecord.FieldCount >= 2
-            && !string.IsNullOrEmpty(message.MessageRecord[2].ToString()))
-          {
-            _progressDialogController?.SetMessage(message.MessageRecord[2].ToString());
-          }
-          break;
         case InstallMessage.ActionStart:
-          //MessageRecord can be null
-          //MessageRecord.Fields is 1 based
-          if (message.MessageRecord != null)
+        case InstallMessage.Info:
+          string formattedMessage;
+          if (!string.IsNullOrEmpty(formattedMessage = message.MessageRecord?.Parse()))
           {
-            string actionName = message.MessageRecord.FieldCount >= 2 ? message.MessageRecord[2].ToString() : string.Empty;
-            string actionDescription = message.MessageRecord.FieldCount >= 3 ? message.MessageRecord[3].ToString() : string.Empty;
-            string formattedString = message.MessageRecord.FormatString.Replace("[1]", actionName)
-              .Replace("[2]", actionDescription).Trim();
-
-            _progressDialogController?.SetMessage(formattedString);
+            _progressDialogController?.SetMessage(formattedMessage);
           }
           break;
         case InstallMessage.InstallEnd:

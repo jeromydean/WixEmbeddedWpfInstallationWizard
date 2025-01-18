@@ -66,6 +66,7 @@ namespace WpfInstallationWizard
       _sessionProxy = null;
       _wpfEmbeddedApplication = null;
       _installationSequenceAborted?.Dispose();
+      _installationSequenceAborted = null;
     }
 
     public MessageResult ProcessMessage(InstallMessage messageType, Record messageRecord, MessageButtons buttons, MessageIcon icon, MessageDefaultButton defaultButton)
