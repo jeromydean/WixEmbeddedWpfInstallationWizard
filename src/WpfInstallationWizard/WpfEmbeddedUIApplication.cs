@@ -20,16 +20,19 @@ namespace WpfInstallationWizard
     private readonly ISessionProxy _sessionProxy;
     private readonly string _resourcePath;
     private readonly ManualResetEvent _installationStarted;
+    private readonly ManualResetEvent _installationSequenceAborted;
     private readonly ManualResetEvent _installationExited;
 
     public WpfEmbeddedUIApplication(ISessionProxy sessionProxy,
       string resourcePath,
       ManualResetEvent installationStarted,
+      ManualResetEvent installationSequenceAborted,
       ManualResetEvent installationExited)
     {
       _sessionProxy = sessionProxy;
       _resourcePath = resourcePath;
       _installationStarted = installationStarted;
+      _installationSequenceAborted = installationSequenceAborted;
       _installationExited = installationExited;
 
       ServiceCollection serviceCollection = new ServiceCollection();
@@ -44,11 +47,11 @@ namespace WpfInstallationWizard
       });
 
       _serviceProvider.GetRequiredService<IWizardViewModel>().SetPages(
-        _serviceProvider.GetRequiredService<InstallCancelledPageViewModel>(),
-        _serviceProvider.GetRequiredService<InstallFinishedPageViewModel>(),
-        _serviceProvider.GetRequiredService<WelcomePageViewModel>(),
-        _serviceProvider.GetRequiredService<LicenseAgreementPageViewModel>(),
-        _serviceProvider.GetRequiredService<VerifyReadyPageViewModel>());
+      _serviceProvider.GetRequiredService<InstallCancelledPageViewModel>(),
+      _serviceProvider.GetRequiredService<InstallFinishedPageViewModel>(),
+      _serviceProvider.GetRequiredService<WelcomePageViewModel>(),
+      _serviceProvider.GetRequiredService<LicenseAgreementPageViewModel>(),
+      _serviceProvider.GetRequiredService<VerifyReadyPageViewModel>());
     }
     public MessageResult ProcessMessage(InstallMessage messageType, Record messageRecord, MessageButtons buttons, MessageIcon icon, MessageDefaultButton defaultButton)
     {
@@ -84,6 +87,7 @@ namespace WpfInstallationWizard
       services.AddSingleton<IWizardViewModel>(new WizardViewModel(_sessionProxy,
         _resourcePath,
         _installationStarted,
+        _installationSequenceAborted,
         _installationExited,
         DialogCoordinator.Instance,
         StrongReferenceMessenger.Default));

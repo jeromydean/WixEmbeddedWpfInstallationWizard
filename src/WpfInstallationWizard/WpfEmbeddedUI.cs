@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading;
+using System.Windows;
 using WixToolset.Dtf.WindowsInstaller;
+using WpfInstallationWizard.Extensions;
 
 namespace WpfInstallationWizard
 {
@@ -11,6 +13,7 @@ namespace WpfInstallationWizard
     private ISessionProxy _sessionProxy;
     private string _resourcePath;
     private ManualResetEvent _installationStarted;
+    private ManualResetEvent _installationSequenceAborted;
     private ManualResetEvent _installationExited;
 
     public bool Initialize(Session session, string resourcePath, ref InstallUIOptions internalUILevel)
@@ -25,26 +28,29 @@ namespace WpfInstallationWizard
 
       _sessionProxy["EMBEDDEDUICANCELLATIONMUTEXNAME"] = Guid.NewGuid().ToString();
 
-      //this is re-used during the install sequence to trigger an abort
+      //this is used during the install sequence to trigger an abort
       //so we can't wrap it in a using block
-      _installationExited = new ManualResetEvent(false);
+      _installationSequenceAborted = new ManualResetEvent(false);
 
       using (_installationStarted = new ManualResetEvent(false))
       {
-        _applicationThread = new Thread(StartWpfEmbeddedUIApplication);
-        _applicationThread.SetApartmentState(ApartmentState.STA);
-        _applicationThread.Start();
-
-        int waitHandleResult = WaitHandle.WaitAny(new WaitHandle[] { _installationStarted, _installationExited });
-        if (waitHandleResult == 1)
+        using (_installationExited = new ManualResetEvent(false))
         {
-          throw new InstallCanceledException();
-        }
+          _applicationThread = new Thread(StartWpfEmbeddedUIApplication);
+          _applicationThread.SetApartmentState(ApartmentState.STA);
+          _applicationThread.Start();
 
-        //https://learn.microsoft.com/en-us/windows/win32/msi/using-an-embedded-ui
-        ///TODO make sure we can actually handle the UI actions that are being requested
-        internalUILevel = InstallUIOptions.NoChange | InstallUIOptions.SourceResolutionOnly;
-        return true;
+          int waitHandleResult = WaitHandle.WaitAny(new WaitHandle[] { _installationStarted, _installationExited });
+          if (waitHandleResult == 1)
+          {
+            throw new InstallCanceledException();
+          }
+
+          //https://learn.microsoft.com/en-us/windows/win32/msi/using-an-embedded-ui
+          ///TODO make sure we can actually handle the UI actions that are being requested
+          internalUILevel = InstallUIOptions.NoChange | InstallUIOptions.SourceResolutionOnly;
+          return true;
+        }
       }
     }
 
@@ -53,8 +59,13 @@ namespace WpfInstallationWizard
       _wpfEmbeddedApplication = new WpfEmbeddedUIApplication(_sessionProxy,
         _resourcePath,
         _installationStarted,
+        _installationSequenceAborted,
         _installationExited);
       _wpfEmbeddedApplication.Start();
+
+      _sessionProxy = null;
+      _wpfEmbeddedApplication = null;
+      _installationSequenceAborted?.Dispose();
     }
 
     public MessageResult ProcessMessage(InstallMessage messageType, Record messageRecord, MessageButtons buttons, MessageIcon icon, MessageDefaultButton defaultButton)
@@ -63,7 +74,6 @@ namespace WpfInstallationWizard
       if (messageType == InstallMessage.InstallStart
         || messageType == InstallMessage.ActionData
         || messageType == InstallMessage.CommonData
-        || messageType == InstallMessage.Info
         || messageType == InstallMessage.Progress)
       {
         return MessageResult.OK;
@@ -81,9 +91,9 @@ namespace WpfInstallationWizard
     /// </summary>
     public void Shutdown()
     {
-      _installationExited?.Set();
+      _installationSequenceAborted?.Set();
       _applicationThread.Join();
-      _wpfEmbeddedApplication = null;
+      _applicationThread = null;
     }
   }
 }

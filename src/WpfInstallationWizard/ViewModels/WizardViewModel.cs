@@ -22,6 +22,7 @@ namespace WpfInstallationWizard.ViewModels
     public ISessionProxy InstallSessionProxy { get; private set; }
     private readonly string _resourcePath;
     private readonly ManualResetEvent _installationStarted;
+    private readonly ManualResetEvent _installationSequenceAborted;
     private readonly ManualResetEvent _installationExited;
     private readonly IDialogCoordinator _dialogCoordinator;
     private readonly IMessenger _messenger;
@@ -117,6 +118,7 @@ namespace WpfInstallationWizard.ViewModels
     public WizardViewModel(ISessionProxy sessionProxy,
       string resourcePath,
       ManualResetEvent installationStarted,
+      ManualResetEvent installationSequenceAborted,
       ManualResetEvent installationExited,
       IDialogCoordinator dialogCoordinator,
       IMessenger messenger)
@@ -124,6 +126,7 @@ namespace WpfInstallationWizard.ViewModels
       InstallSessionProxy = sessionProxy;
       _resourcePath = resourcePath;
       _installationStarted = installationStarted;
+      _installationSequenceAborted = installationSequenceAborted;
       _installationExited = installationExited;
 
       _dialogCoordinator = dialogCoordinator;
@@ -188,24 +191,18 @@ namespace WpfInstallationWizard.ViewModels
         _installationStarted.Set();
 
         //aborted = declined UAC prompt or if something fails during the install
-        Task installAbortedTask = _installationExited.WaitAsync(CancellationToken.None);
+        Task installAbortedTask = _installationSequenceAborted.WaitAsync(CancellationToken.None);
         //cancelled = user cancel from the wizard UI
         Task installCancelledTask = _installationCancelled.WaitAsync(CancellationToken.None);
         //finished = recieved the InstallMessage.InstallEnd message through the interface
         Task installFinishedTask = _installationFinished.WaitAsync(CancellationToken.None);
 
+        //in the case of an abort you won't get the InstallEnd message so it'll never "finish"
         Task completedTask = await Task.WhenAny(installAbortedTask, installCancelledTask, installFinishedTask);
-
-        bool installFinished = installFinishedTask == completedTask;
-        bool installAborted = installAbortedTask == completedTask;
-
-        if (installAborted)
+        bool installCompletedSuccessfully = completedTask == installFinishedTask;
+        if (completedTask == installCancelledTask)
         {
-          CancelInstall();
-        }
-        else
-        {
-          await installFinishedTask;
+          await Task.WhenAny(installAbortedTask, installFinishedTask);
         }
 
         _progressDialogController.Canceled -= ProgressDialogCancelled;
@@ -213,7 +210,7 @@ namespace WpfInstallationWizard.ViewModels
         _progressDialogController = null;
         _installCancellationMutex?.Dispose();
         _installationPerformed = true;
-        CurrentPage = installFinished ? _installFinishedPage : _installCancelledPage;
+        CurrentPage = installCompletedSuccessfully ? _installFinishedPage : _installCancelledPage;
       });
     }
 
@@ -223,22 +220,29 @@ namespace WpfInstallationWizard.ViewModels
       //https://learn.microsoft.com/en-us/windows/win32/msi/parsing-windows-installer-messages
       switch (message.MessageType)
       {
-        case InstallMessage.ActionStart:
-          //MessageRecord.Fields is 1 based
-          string actionName = message.MessageRecord.FieldCount >= 2 ? message.MessageRecord[2].ToString() : string.Empty;
-          string actionDescription = message.MessageRecord.FieldCount >= 3 ? message.MessageRecord[3].ToString() : string.Empty;
-          string formattedString = message.MessageRecord.FormatString.Replace("[1]", actionName)
-            .Replace("[2]", actionDescription).Trim();
-          
-          if (!_installationCancelled.WaitOne(0))
+        case InstallMessage.Info:
+          if (message.MessageRecord != null
+            && message.MessageRecord.FieldCount >= 2
+            && !string.IsNullOrEmpty(message.MessageRecord[2].ToString()))
           {
+            _progressDialogController?.SetMessage(message.MessageRecord[2].ToString());
+          }
+          break;
+        case InstallMessage.ActionStart:
+          //MessageRecord can be null
+          //MessageRecord.Fields is 1 based
+          if (message.MessageRecord != null)
+          {
+            string actionName = message.MessageRecord.FieldCount >= 2 ? message.MessageRecord[2].ToString() : string.Empty;
+            string actionDescription = message.MessageRecord.FieldCount >= 3 ? message.MessageRecord[3].ToString() : string.Empty;
+            string formattedString = message.MessageRecord.FormatString.Replace("[1]", actionName)
+              .Replace("[2]", actionDescription).Trim();
+
             _progressDialogController?.SetMessage(formattedString);
           }
           break;
         case InstallMessage.InstallEnd:
           _installationFinished.Set();
-          break;
-        default:
           break;
       }
     }
