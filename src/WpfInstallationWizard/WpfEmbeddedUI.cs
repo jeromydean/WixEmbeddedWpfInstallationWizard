@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using WixToolset.Dtf.WindowsInstaller;
-using WpfInstallationWizard.Messages;
 
 namespace WpfInstallationWizard
 {
@@ -26,25 +25,26 @@ namespace WpfInstallationWizard
 
       _sessionProxy["EMBEDDEDUICANCELLATIONMUTEXNAME"] = Guid.NewGuid().ToString();
 
+      //this is re-used during the install sequence to trigger an abort
+      //so we can't wrap it in a using block
+      _installationExited = new ManualResetEvent(false);
+
       using (_installationStarted = new ManualResetEvent(false))
       {
-        using (_installationExited = new ManualResetEvent(false))
+        _applicationThread = new Thread(StartWpfEmbeddedUIApplication);
+        _applicationThread.SetApartmentState(ApartmentState.STA);
+        _applicationThread.Start();
+
+        int waitHandleResult = WaitHandle.WaitAny(new WaitHandle[] { _installationStarted, _installationExited });
+        if (waitHandleResult == 1)
         {
-          _applicationThread = new Thread(StartWpfEmbeddedUIApplication);
-          _applicationThread.SetApartmentState(ApartmentState.STA);
-          _applicationThread.Start();
-
-          int waitHandleResult = WaitHandle.WaitAny(new WaitHandle[] { _installationStarted, _installationExited });
-          if (waitHandleResult == 1)
-          {
-            throw new InstallCanceledException();
-          }
-
-          //https://learn.microsoft.com/en-us/windows/win32/msi/using-an-embedded-ui
-          ///TODO make sure we can actually handle the UI actions that are being requested
-          internalUILevel = InstallUIOptions.NoChange | InstallUIOptions.SourceResolutionOnly;
-          return true;
+          throw new InstallCanceledException();
         }
+
+        //https://learn.microsoft.com/en-us/windows/win32/msi/using-an-embedded-ui
+        ///TODO make sure we can actually handle the UI actions that are being requested
+        internalUILevel = InstallUIOptions.NoChange | InstallUIOptions.SourceResolutionOnly;
+        return true;
       }
     }
 
@@ -81,7 +81,9 @@ namespace WpfInstallationWizard
     /// </summary>
     public void Shutdown()
     {
+      _installationExited?.Set();
       _applicationThread.Join();
+      _wpfEmbeddedApplication = null;
     }
   }
 }

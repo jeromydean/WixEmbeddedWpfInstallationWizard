@@ -171,25 +171,42 @@ namespace WpfInstallationWizard.ViewModels
         _progressDialogController = await _dialogCoordinator.ShowProgressAsync(this, "Installing", "Starting installation", true);
         _progressDialogController.SetIndeterminate();
 
-        void ProgressDialogCancelled(object s, EventArgs ea)
+        void CancelInstall()
         {
           _installCancellationMutex = new Mutex(true, _cancellationMutexName);
           _installationCancelled.Set();
           _progressDialogController.SetTitle("Cancelling installation");
           _progressDialogController.SetMessage("Please wait");
+        }
+
+        void ProgressDialogCancelled(object s, EventArgs ea)
+        {
+          CancelInstall();
         };
         _progressDialogController.Canceled += ProgressDialogCancelled;
 
         _installationStarted.Set();
 
+        //aborted = declined UAC prompt or if something fails during the install
+        Task installAbortedTask = _installationExited.WaitAsync(CancellationToken.None);
+        //cancelled = user cancel from the wizard UI
         Task installCancelledTask = _installationCancelled.WaitAsync(CancellationToken.None);
+        //finished = recieved the InstallMessage.InstallEnd message through the interface
         Task installFinishedTask = _installationFinished.WaitAsync(CancellationToken.None);
 
-        Task completedTask = await Task.WhenAny(installCancelledTask, installFinishedTask);
+        Task completedTask = await Task.WhenAny(installAbortedTask, installCancelledTask, installFinishedTask);
 
         bool installFinished = installFinishedTask == completedTask;
+        bool installAborted = installAbortedTask == completedTask;
 
-        await installFinishedTask;
+        if (installAborted)
+        {
+          CancelInstall();
+        }
+        else
+        {
+          await installFinishedTask;
+        }
 
         _progressDialogController.Canceled -= ProgressDialogCancelled;
         await _progressDialogController.CloseAsync();

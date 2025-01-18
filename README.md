@@ -8,8 +8,3 @@ The idea behind this project is to make it easier than using MSI dialogs for ins
  * Dependency injection using Microsoft.Extensions.DependencyInjection
  * Styling & controls courtesy of MahApps Metro
  * MVVM (CommunityToolkit.Mvvm)
-
-
- ##### Known Issues:
-
- * Hang when cancelling the install via the UAC prompt (probably just need to parse the correct installer message)
