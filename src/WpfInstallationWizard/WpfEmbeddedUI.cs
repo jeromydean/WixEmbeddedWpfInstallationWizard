@@ -80,11 +80,11 @@ namespace WpfInstallationWizard
         return MessageResult.OK;
       }
 
-      return _wpfEmbeddedApplication.ProcessMessage(messageType,
+      return _wpfEmbeddedApplication?.ProcessMessage(messageType,
         messageRecord,
         buttons,
         icon,
-        defaultButton);
+        defaultButton) ?? MessageResult.OK;
     }
 
     /// <summary>
